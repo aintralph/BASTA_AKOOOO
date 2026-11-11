@@ -1,0 +1,2199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MALORNE</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Italianno&family=Mr+Dafoe&family=Poppins:wght@300;400&family=IBM+Plex+Mono&family=Kanit:ital,wght@0,500;0,600;1,700&family=Michroma&family=Jura:wght@400;500&family=Jost:wght@300;400&family=Newsreader:wght@400;500&family=Patrick+Hand&family=Playfair+Display:ital,wght@0,500;1,400&family=EB+Garamond:wght@400&family=Montserrat:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="entrance.css">
+  <style>
+
+/* ==========================================================
+   ENTRANCE BOOK (prefix "bk-") – only the book + buttons.
+   Your entrance.css (background, #white, #name) is untouched.
+   ========================================================== */
+#stage { position: fixed; inset: 0; overflow: hidden; }
+
+.bk-scene {
+  --bk-w: min(62vw, calc((100vh - 190px) * 5 / 7), 340px);
+  --bk-r: 3px calc(var(--bk-w) * .04) calc(var(--bk-w) * .11) 3px;   /* rounded bottom-right */
+  --bk-open: 1600ms;     /* keep in sync with TIMING.open */
+  --bk-zoom: 2200ms;     /* keep in sync with TIMING.zoom */
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1.6rem, 5vh, 2.6rem);
+}
+@supports (height: 100svh) {
+  .bk-scene { --bk-w: min(62vw, calc((100svh - 190px) * 5 / 7), 340px); }
+}
+.bk-camera {
+  perspective: 1700px;
+  transition: transform var(--bk-zoom) cubic-bezier(.5, 0, .2, 1);
+  will-change: transform;
+}
+.bk-pan {
+  transform-style: preserve-3d;
+  transition: transform var(--bk-zoom) cubic-bezier(.45, 0, .25, 1);
+  will-change: transform;
+}
+.bk-book {
+  position: relative;
+  width: var(--bk-w);
+  max-width: 100%;
+  aspect-ratio: 5 / 7;
+  min-width: 140px;
+  transform-style: preserve-3d;
+}
+/* back block carries the soft shadow, so the shadow moves with the book */
+.bk-body {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--bk-r);
+  background: #f4f2ee;
+  transform: translateZ(-4px);
+  box-shadow:
+    6px 8px 12px rgba(30, 25, 50, .22),
+    16px 22px 32px rgba(30, 25, 50, .20),
+    34px 44px 70px rgba(30, 25, 50, .14);
+}
+/* thin page edges on the left */
+.bk-body::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: 1.2%;
+  bottom: 1.2%;
+  width: 9px;
+  border-radius: 3px 0 0 3px;
+  background: repeating-linear-gradient(to right, #fdfcfa 0 1px, #cfcac2 1px 2px);
+  box-shadow: -1px 0 2px rgba(0, 0, 0, .10);
+}
+.bk-face {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--bk-r);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.bk-leaf {
+  position: absolute;
+  inset: 1.2% 1.4% 1.2% 0;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  transition: transform var(--bk-open) cubic-bezier(.62, .04, .22, 1);
+}
+.bk-leaf-1 { transform: translateZ(-1px); transition-delay: 90ms; }
+.bk-leaf-2 { transform: translateZ(-2px); transition-delay: 180ms; }
+.bk-leaf .bk-face { background: #fdfcfa; }
+.bk-leaf .bk-leaf-back {
+  transform: rotateY(180deg);
+  background: linear-gradient(to left, #f1eee9, #fdfcfa 35%);
+}
+.bk-cover {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  transition: transform var(--bk-open) cubic-bezier(.62, .04, .22, 1);
+  will-change: transform;
+}
+.bk-front {
+  background: linear-gradient(135deg, #ffffff 0%, #fbfaf8 100%);
+  overflow: hidden;
+}
+.bk-front::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 4.2%;
+  width: 1px;
+  background: rgba(0, 0, 0, .09);
+  box-shadow: 1px 0 0 rgba(255, 255, 255, .9);
+}
+.bk-inside {
+  transform: rotateY(180deg);
+  background: linear-gradient(to left, #efece7, #f9f8f5 40%);
+}
+.bk-book.is-open .bk-cover  { transform: rotateY(-156deg); }
+.bk-book.is-open .bk-leaf-1 { transform: translateZ(-1px) rotateY(-164deg); }
+.bk-book.is-open .bk-leaf-2 { transform: translateZ(-2px) rotateY(-171deg); }
+
+/* title */
+.bk-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%) rotate(-8deg);
+  text-align: center;
+  font-family: "Mr Dafoe", "Italianno", cursive;
+  font-weight: 400;
+  line-height: .98;
+  color: #151515;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+.bk-title span { display: block; }
+.bk-l1 { font-size: calc(var(--bk-w) * .19); transform: translateX(-5%); }
+.bk-l2 { font-size: calc(var(--bk-w) * .23); color: #d6231f; transform: translateX(3%); }
+.bk-l3 { font-size: calc(var(--bk-w) * .19); transform: translateX(14%); }
+/* want ALL CAPS? uncomment: .bk-title { text-transform: uppercase; } */
+
+/* buttons */
+.bk-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  transition: opacity 500ms ease;
+}
+#stage.is-opening .bk-actions { opacity: 0; pointer-events: none; }
+.bk-btn {
+  all: unset;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 7.2rem;
+  padding: .85rem 1.6rem;
+  border-radius: 999px;
+  font-family: "Poppins", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 400;
+  font-size: .8rem;
+  letter-spacing: .28em;
+  text-indent: .28em;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform 200ms ease, background-color 250ms ease, color 250ms ease, box-shadow 250ms ease;
+}
+.bk-btn:focus-visible { outline: 2px solid #1b1b1b; outline-offset: 3px; }
+.bk-open {
+  background: #1b1b1b;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .22);
+}
+@media (hover: hover) { .bk-open:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(0, 0, 0, .28); } }
+.bk-open:active { transform: scale(.97); }
+.bk-nah-slot { display: inline-block; min-width: 7.2rem; height: 2.9rem; }
+.bk-nah {
+  background: rgba(255, 255, 255, .6);
+  color: #1b1b1b;
+  box-shadow: inset 0 0 0 1px #1b1b1b;
+}
+.bk-nah.is-floating {
+  position: fixed;
+  z-index: 20;
+  transition:
+    left 320ms cubic-bezier(.2, .85, .25, 1),
+    top 320ms cubic-bezier(.2, .85, .25, 1),
+    background-color 250ms ease;
+}
+@media (max-width: 480px) {
+  .bk-btn { min-width: 6.4rem; padding: .8rem 1.3rem; }
+  .bk-nah-slot { min-width: 6.4rem; }
+}
+/* ===== END ENTRANCE BOOK ===== */
+
+/* ==========================================================
+   MALORNE – birthday main page
+   All classes are prefixed "bd-" so they never collide with
+   the entrance page styles.
+   ========================================================== */
+:root {
+  --bd-bg: #f5f1ea;
+  --bd-frame: #e8dfd3;
+  --bd-ink: #1f1f1f;
+  --bd-heading-font: "Poppins", "Helvetica Neue", Arial, sans-serif;
+  --bd-body-font: "IBM Plex Mono", "Courier New", monospace;
+
+  --bd-frame-w: clamp(120px, min(22vw, 32vh), 260px);
+  --bd-rise: 1000ms;   /* fade + rise duration of stickers / frame */
+}
+
+/* The container. Starts white (to match the entrance's white screen),
+   then fades to the page colour when .is-live is added by main.js. */
+#main-page {
+  position: fixed;
+  inset: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: #fff;
+  transition: background-color 900ms ease;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;                    /* Firefox: hide scrollbar */
+  -ms-overflow-style: none;                 /* old Edge */
+  outline: none;
+}
+#main-page::-webkit-scrollbar { display: none; width: 0; height: 0; }   /* Chrome, Safari, new Edge */
+#main-page.is-live { background-color: var(--bd-bg); }
+/* scrolling is off while the message is typing (class removed by the script) */
+#main-page.bd-locked { overflow-y: hidden; }
+
+.bd {
+  box-sizing: border-box;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(2rem, 6vw, 5rem);
+  padding: clamp(2.5rem, 6vw, 4rem) 1.5rem;
+}
+
+/* ---------- Photo frame + stickers ---------- */
+.bd-photo {
+  position: relative;
+  flex: none;
+  width: var(--bd-frame-w);
+}
+
+.bd-frame {
+  position: relative;
+  aspect-ratio: 127 / 262;
+  background: var(--bd-frame);
+}
+/* Put an <img> inside this box later to show a real photo */
+.bd-frame-inner {
+  position: absolute;
+  inset: 5% 8% 14% 8%;
+  background: #fff;
+  overflow: hidden;
+}
+.bd-frame-inner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.bd-sticker { position: absolute; line-height: 0; }
+.bd-sticker img,
+.bd-sticker svg { width: 100%; height: auto; display: block; }
+.bd-cake    { left: -7%;  top: -5.5%;  width: 34%; }
+.bd-bunting { left: -13%; bottom: -9%; width: 52%; }
+
+/* Empty slot: shows a dashed placeholder until you put an <img> inside */
+.bd-sticker:empty {
+  outline: 2px dashed rgba(60, 60, 60, .35);
+  outline-offset: -2px;
+  border-radius: 8px;
+}
+.bd-cake:empty    { aspect-ratio: 1 / 1; }
+.bd-bunting:empty { aspect-ratio: 4 / 3; }
+
+/* hidden start state + rise-in animation (toggled with .is-in) */
+.bd-frame,
+.bd-cake,
+.bd-bunting {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity var(--bd-rise) ease,
+    transform var(--bd-rise) cubic-bezier(.2, .7, .2, 1);
+}
+.bd-frame.is-in,
+.bd-cake.is-in,
+.bd-bunting.is-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---------- Message ---------- */
+.bd-text {
+  max-width: 28rem;
+  text-align: center;
+  color: var(--bd-ink);
+}
+.bd-title {
+  margin: 0 0 1.6em;
+  font-family: var(--bd-heading-font);
+  font-weight: 400;
+  font-size: clamp(1.25rem, 2.2vw, 1.9rem);
+  line-height: 1.5;
+  letter-spacing: .01em;
+  color: #3B729F;
+}
+.bd-text p {
+  margin: 0 0 1.7em;
+  font-family: var(--bd-body-font);
+  font-size: clamp(.82rem, 1.15vw, 1.02rem);
+  line-height: 1.65;
+  color: #424B6C;
+}
+.bd-text p:last-child { margin-bottom: 0; }
+
+/* typing: characters keep their space, they just become visible */
+.bd-w { display: inline-block; white-space: nowrap; }
+.bd-c { visibility: hidden; }
+.bd-c.on { visibility: visible; }
+
+/* ---------- Second section (Music) ---------- */
+.bd-second {
+  --music-w: min(90vw, 40rem);           /* width of the music image + caption */
+  box-sizing: border-box;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(3.5rem, 8vw, 5rem) 1.5rem;
+  background: #F8F6F4;
+}
+.bd-reveal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(48px);
+  transition:
+    opacity 1400ms ease,
+    transform 1400ms cubic-bezier(.2, .7, .2, 1);
+}
+.bd-reveal.is-visible { opacity: 1; transform: translateY(0); }
+
+.bd-music-title {
+  margin: 0;
+  font-family: "Kanit", "Poppins", Arial, sans-serif;
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(2.8rem, 7vw, 4.8rem);
+  line-height: 1.1;
+  color: #000;
+}
+.bd-music-sub {
+  margin: .25rem 0 1.6rem;
+  font-family: var(--bd-heading-font);
+  font-weight: 300;
+  font-size: .95rem;
+  color: #8c7f86;
+}
+/* MUSIC SLOT: put an <img>, <iframe> or <video> inside this box */
+.bd-music-slot {
+  width: var(--music-w);
+  aspect-ratio: 16 / 9;
+  background: #d9d9d9;
+  overflow: hidden;
+}
+.bd-music-slot img,
+.bd-music-slot iframe,
+.bd-music-slot video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border: 0;
+}
+.bd-music-cap {
+  width: var(--music-w);
+  margin: .55rem 0 0;
+  font-family: var(--bd-body-font);
+  font-size: .7rem;
+  line-height: 1.4;
+  text-align: left;
+  color: #222;
+}
+.bd-date-label,
+.bd-day {
+  margin: 0;
+  padding-left: .42em;               /* balances the trailing letter-spacing */
+  font-family: var(--bd-heading-font);
+  font-weight: 300;
+  font-size: .72rem;
+  letter-spacing: .42em;
+  color: #9b9b9b;
+}
+.bd-date-label { margin-top: 3.4rem; margin-bottom: .7rem; }
+.bd-day        { margin-top: 1.8rem; }
+.bd-date {
+  display: inline-block;
+  margin: 0;
+  padding-left: .22em;
+  font-family: "Michroma", "Poppins", Arial, sans-serif;
+  font-weight: 400;
+  font-size: clamp(1.4rem, 6.6vw, 4.2rem);
+  line-height: 1.2;
+  letter-spacing: .22em;
+  white-space: nowrap;
+  color: #1b4d2b;
+  transition: transform 600ms cubic-bezier(.2, .7, .2, 1);
+}
+@media (hover: hover) {
+  .bd-date:hover { transform: scale(1.06); }
+}
+
+/* ===== SECTION 2 (Dad message + photo frame) – CSS ===== */
+.bd-dad {
+  box-sizing: border-box;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(3.5rem, 8vw, 5rem) 1.5rem;
+  background: var(--bd-bg);
+}
+.bd-reveal.bd-reveal-dad {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1.5rem, 6vw, 4.5rem);
+  width: min(92vw, 46rem);
+}
+.bd-dad-text {
+  flex: 1;
+  min-width: 0;
+  max-width: 22rem;
+  text-align: center;
+}
+.bd-dad-text p {
+  margin: 0 0 3rem;
+  font-family: var(--bd-body-font);
+  font-size: clamp(.78rem, 1.15vw, 1rem);
+  line-height: 1.65;
+  color: #424B6C;
+}
+.bd-dad-text p:last-child { margin-bottom: 0; }
+/* same beige frame as the first page; the white box holds your <img> */
+.bd-dad-frame {
+  position: relative;
+  flex: none;
+  width: clamp(96px, 22vw, 190px);
+  aspect-ratio: 127 / 262;
+  background: var(--bd-frame);
+}
+/* ===== END SECTION 2 – CSS ===== */
+
+/* ===== SECTION 3 (For someone whose hands heal) – CSS ===== */
+.bd-third {
+  --f: clamp(5rem, 15.8vw, 11rem);      /* frame width: everything scales from this */
+  box-sizing: border-box;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(3rem, 8vw, 5rem) 0;
+}
+.bd-reveal.bd-reveal-s3 {
+  align-items: stretch;
+  text-align: left;
+  width: min(86vw, 60rem);
+}
+.bd-s3-title {
+  margin: 0 0 calc(var(--f) * .12);
+  font-family: "Jura", "Poppins", Arial, sans-serif;
+  font-weight: 500;
+  font-size: clamp(1.15rem, 4.6vw, 2.6rem);
+  line-height: 1.25;
+  letter-spacing: .08em;
+  color: #484848;
+}
+.bd-s3-row {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--f) * .33);
+}
+.bd-s3-row2 { margin-top: calc(var(--f) * .17); }
+.bd-s3-pics {
+  flex: none;
+  display: flex;
+  justify-content: center;
+  gap: calc(var(--f) * .29);
+  width: calc(var(--f) * 2.29);
+}
+/* picture frame: beige border + light inner area that holds the <img> */
+.bd-s3-frame {
+  position: relative;
+  flex: none;
+  width: var(--f);
+  aspect-ratio: 2 / 3;
+  background: var(--bd-frame);
+}
+.bd-s3-img {
+  position: absolute;
+  inset: 3.6% 3.6% 10% 3.6%;
+  background: #f6f5f3;
+  overflow: hidden;
+}
+.bd-s3-img img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.bd-s3-p {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  text-align: center;
+  font-family: "Jura", "Poppins", Arial, sans-serif;
+  font-weight: 400;
+  font-size: clamp(.64rem, 1.85vw, .98rem);
+  line-height: 1.6;
+  letter-spacing: .16em;
+  color: #7d6b5f;
+}
+@media (max-width: 600px) {
+  .bd-third { --f: 27vw; }
+  .bd-s3-row { flex-direction: column; gap: 1.2rem; }
+  .bd-s3-row2 { margin-top: 2rem; }
+  .bd-s3-p { flex: none; width: 100%; font-size: .74rem; }
+  .bd-s3-title { font-size: 1.2rem; margin-bottom: 1.4rem; }
+}
+/* ===== END SECTION 3 – CSS ===== */
+
+/* ===== GALLERY (pinned horizontal scroll) – CSS ===== */
+.bd-gal {
+  --gal-left: 13vw;                              /* title sits a little left of centre */
+  --gal-gw: clamp(210px, 42vw, 440px);           /* image width */
+  --gal-gap: clamp(14px, 2.6vw, 36px);           /* generous space between images */
+  --gal-start: 37vw;                             /* where the first image starts */
+  --gal-ease: cubic-bezier(.16, 1, .3, 1);
+  position: relative;
+  height: calc(100vh + 140vw);                   /* JS replaces this with the exact scroll distance */
+  background: var(--bd-bg);
+  font-family: "Kanit", "Poppins", Arial, sans-serif;
+}
+.bd-gal-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;                              /* nothing can ever cause sideways overflow */
+}
+
+/* small label at the top: slides up from behind a mask */
+.bd-gal-nav {
+  position: absolute;
+  top: clamp(3.4rem, 12vh, 6.5rem);
+  left: 0;
+  right: 0;
+  z-index: 3;
+  margin: 0;
+  overflow: hidden;
+  text-align: center;
+  font-weight: 500;
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+  line-height: 1.5;
+  color: #000;
+  pointer-events: none;
+}
+.bd-gal-nav span { display: block; transform: translateY(115%); transition: transform 1000ms var(--gal-ease); }
+.bd-gal.is-in .bd-gal-nav span { transform: none; }
+
+/* oversized title + underline */
+.bd-gal-head {
+  position: absolute;
+  left: var(--gal-left);
+  top: 50%;
+  z-index: 1;
+  font-size: clamp(4.5rem, 21vw, 15rem);
+  line-height: 1;
+  transform: translate3d(0, -50%, 0);
+  will-change: transform;                        /* JS adds a slow parallax drift */
+}
+.bd-gal-title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 1em;
+  line-height: 1.1;
+  color: #CCCAC6;
+  white-space: nowrap;
+  transform-origin: 50% 100%;
+  transform: translateY(16%) scaleY(.86);        /* starts low and slightly squashed */
+  transition: transform 1700ms var(--gal-ease);
+}
+.bd-gal.is-in .bd-gal-title { transform: none; }
+/* every letter lives in its own mask and rises from behind it */
+.bd-gal-ch {
+  display: inline-block;
+  vertical-align: top;
+  overflow: hidden;
+  line-height: 1.12;
+  padding: 0 .015em .14em;
+  margin: 0 -.015em -.14em;
+}
+.bd-gal-ch i {
+  display: inline-block;
+  font-style: normal;
+  transform: translateY(110%);
+  transition: transform 1300ms var(--gal-ease) calc(var(--i) * 70ms + 150ms);
+}
+.bd-gal.is-in .bd-gal-ch i { transform: none; }
+.bd-gal-line {
+  position: absolute;
+  left: .03em;
+  top: calc(100% + .1em);
+  width: clamp(3rem, 12vw, 5rem);
+  height: 2px;
+  background: #d3d0ca;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 1200ms var(--gal-ease) 900ms;   /* draws itself after the letters */
+}
+.bd-gal.is-in .bd-gal-line { transform: scaleX(1); }
+
+/* the image row (moved by the script) sits in front of the title */
+.bd-gal-track {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--gal-gap);
+  width: max-content;
+  transform: translate3d(0, -50%, 0);
+  will-change: transform;
+}
+.bd-gal-track::before { content: ""; flex: none; width: calc(var(--gal-start) - var(--gal-gap)); }
+.bd-gal-track::after  { content: ""; flex: none; width: calc(10vw - var(--gal-gap)); }
+
+.bd-gal-item {
+  flex: none;
+  width: var(--gal-gw);
+  aspect-ratio: 16 / 10;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #d9d9d9;
+  /* entrance: unmasked from the bottom + small rise + slight scale (no plain fade) */
+  clip-path: inset(100% 0 0 0);
+  transform: translate3d(0, var(--rise, 48px), 0) scale(.94);
+  transition:
+    clip-path 1300ms var(--gal-ease) var(--d, 0ms),
+    transform 1300ms var(--gal-ease) var(--d, 0ms);
+}
+.bd-gal-item:nth-child(even) { --rise: 30px; }
+.bd-gal-item.is-in { clip-path: inset(0 0 0 0); transform: none; }
+.bd-gal-item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.2);
+  transition: transform 1800ms var(--gal-ease) var(--d, 0ms);
+}
+.bd-gal-item.is-in img { transform: scale(1); }
+
+/* ---- hover / tap: show the complete photo (visual only, layout box never changes) ---- */
+.bd-gal-item { position: relative; z-index: 1; }
+.bd-gal-item.is-settled {            /* set by script once the entrance has finished */
+  clip-path: none;
+  transition: transform 450ms var(--gal-ease), box-shadow 450ms ease, background-color 450ms ease;
+}
+.bd-gal-item.is-settled img { transition: none; }
+@keyframes galSwap { from { opacity: .3; } to { opacity: 1; } }
+@media (hover: hover) and (pointer: fine) {
+  .bd-gal-item.is-settled:hover {
+    z-index: 10;
+    transform: scale(1.22);
+    background: var(--bd-bg);
+    box-shadow: 0 18px 40px rgba(40, 34, 24, .22), 0 4px 12px rgba(40, 34, 24, .12);
+  }
+  .bd-gal-item.is-settled:hover img { object-fit: contain; animation: galSwap 450ms ease; }
+}
+.bd-gal-item.is-settled.is-full {    /* tap on touch screens */
+  z-index: 10;
+  transform: scale(1.1);
+  background: var(--bd-bg);
+  box-shadow: 0 14px 32px rgba(40, 34, 24, .22);
+}
+.bd-gal-item.is-settled.is-full img { object-fit: contain; animation: galSwap 450ms ease; }
+@media (prefers-reduced-motion: reduce) {
+  .bd-gal-item.is-settled, .bd-gal-item.is-settled img { animation: none !important; transition: none !important; }
+}
+
+/* touch devices / reduced motion: normal horizontal swiping instead of the pinned scroll */
+.bd-gal--native { height: auto; }
+.bd-gal--native .bd-gal-stage { position: relative; height: 100vh; }
+.bd-gal--native .bd-gal-head { transform: translateY(-50%) !important; }
+.bd-gal--native .bd-gal-track {
+  right: 0;
+  width: auto;
+  padding: 40px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.bd-gal--native .bd-gal-track::-webkit-scrollbar { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-gal-nav span, .bd-gal-title, .bd-gal-ch i, .bd-gal-line, .bd-gal-item, .bd-gal-item img {
+    transition: none !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+}
+/* ===== END GALLERY – CSS ===== */
+
+/* ===== NAVIGATION (text only, one bar for the whole page) – CSS ===== */
+.bd-nav {
+  position: fixed;
+  top: clamp(.8rem, 2vw, 1.2rem);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: clamp(1.2rem, 3vw, 2.2rem);
+  background: none;
+  border: 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-16px);
+  pointer-events: none;
+  transition:
+    opacity 1100ms ease,
+    transform 1100ms cubic-bezier(.2, .7, .2, 1),
+    visibility 0s linear 1100ms;
+}
+/* class added by the script once the first message has finished typing */
+#main-page.bd-nav-on .bd-nav {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+.bd-nav a {
+  position: relative;
+  display: inline-block;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  font-weight: 400;
+  font-size: clamp(.9rem, 1.25vw, 1.05rem);   /* ~16px on desktop, ~14px on phones */
+  line-height: 1.2;
+  letter-spacing: 0;
+  color: #68704B;
+  text-decoration: none;
+  background: none;
+  border: 0;
+  padding: 2px 0 5px;
+  transition: color 350ms ease, transform 350ms cubic-bezier(.2, .7, .2, 1);
+}
+.bd-nav a::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 350ms cubic-bezier(.2, .7, .2, 1);
+}
+.bd-nav a:hover,
+.bd-nav a:focus-visible { color: #4a5033; transform: translateY(-3px); outline: none; }
+.bd-nav a:hover::after,
+.bd-nav a:focus-visible::after { transform: scaleX(1); }
+.bd-nav a:focus-visible { outline: 1px dashed #4a5033; outline-offset: 6px; border-radius: 2px; }
+@media (max-width: 480px) { .bd-nav { gap: .9rem; } .bd-nav a { font-size: .875rem; } }
+@media (prefers-reduced-motion: reduce) { .bd-nav a, .bd-nav a::after { transition-duration: 1ms; } }
+/* ===== END NAVIGATION – CSS ===== */
+
+/* ===== IMAGE HOVER EFFECTS, SECTIONS 1-3 (mouse only; entrance transforms stay on the wrappers) ===== */
+.bd-frame-inner img,
+.bd-s3-img img {
+  transition: transform 700ms cubic-bezier(.16, 1, .3, 1), filter 700ms cubic-bezier(.16, 1, .3, 1);
+  will-change: transform;
+}
+.bd-dad-frame { transition: transform 600ms cubic-bezier(.16, 1, .3, 1), box-shadow 600ms cubic-bezier(.16, 1, .3, 1); }
+.bd-s3-img::after {                    /* warm editorial tone, invisible until hover */
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: linear-gradient(180deg, rgba(255, 214, 160, .18), rgba(190, 120, 60, .16));
+  mix-blend-mode: soft-light;
+  transition: opacity 700ms cubic-bezier(.16, 1, .3, 1);
+}
+@media (hover: hover) and (pointer: fine) {
+  /* Section 1: cinematic zoom */
+  .bd-frame:hover .bd-frame-inner img { transform: scale(1.06); filter: brightness(1.06) saturate(1.05); }
+  /* Section 2: soft floating frame */
+  .bd-dad-frame:hover { transform: translateY(-8px); box-shadow: 0 18px 34px rgba(60, 50, 35, .20), 0 4px 10px rgba(60, 50, 35, .10); }
+  .bd-dad-frame:hover .bd-frame-inner img { transform: scale(1.05); }
+  /* Section 3: editorial reveal */
+  .bd-s3-frame:hover .bd-s3-img img { transform: scale(1.07); filter: brightness(1.05) contrast(1.04) sepia(.12); }
+  .bd-s3-frame:hover .bd-s3-img::after { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bd-frame-inner img, .bd-s3-img img, .bd-dad-frame, .bd-s3-img::after { transition: none; }
+}
+/* ===== END IMAGE HOVER EFFECTS ===== */
+
+/* ===== SECTION 4 (Your favorite line) – CSS ===== */
+.bd-fourth {
+  --w4: min(66vw, 40rem);               /* width of the widest image; the others scale from it */
+  box-sizing: border-box;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(4.5rem, 9vw, 6rem) 0 clamp(3rem, 8vw, 5rem);
+}
+.bd-reveal.bd-reveal-s4 {
+  width: min(92vw, 46rem);
+  align-items: center;
+}
+.bd-s4-title {
+  margin: 0 0 calc(var(--w4) * .08);
+  font-family: "Jost", "Poppins", Arial, sans-serif;
+  font-weight: 300;
+  font-size: clamp(1.4rem, 4.2vw, 2.3rem);
+  line-height: 1.2;
+  letter-spacing: .02em;
+  color: #111;
+}
+.bd-s4-slots {
+  width: var(--w4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--w4) * .045);
+}
+/* each image slot works on its own */
+.bd-s4-slot {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  background: #d9d9d9;
+  cursor: pointer;
+  transition:
+    transform 600ms cubic-bezier(.16, 1, .3, 1),
+    box-shadow 600ms cubic-bezier(.16, 1, .3, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+.bd-s4-slot img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: blur(6px);
+  transform: scale(1.12);               /* hides the soft blurred edges */
+  transition:
+    filter 600ms cubic-bezier(.16, 1, .3, 1),
+    transform 600ms cubic-bezier(.16, 1, .3, 1);
+}
+.bd-s4-1 { width: 44%; aspect-ratio: 220 / 65; }
+.bd-s4-2 { width: 82%; aspect-ratio: 410 / 70; }
+.bd-s4-3 { width: 100%; aspect-ratio: 499 / 69; }
+
+/* clear + slightly larger: on hover (mouse), keyboard focus, or tap (touch) */
+@media (hover: hover) {
+  .bd-s4-slot:hover { transform: scale(1.06); z-index: 5; box-shadow: 0 10px 28px rgba(0, 0, 0, .18); }
+  .bd-s4-slot:hover img { filter: blur(0) brightness(1.05) contrast(1.06); transform: scale(1); }
+}
+.bd-s4-slot:focus-visible,
+.bd-s4-slot.is-clear { transform: scale(1.06); z-index: 5; box-shadow: 0 10px 28px rgba(0, 0, 0, .18); outline: none; }
+.bd-s4-slot:focus-visible img,
+.bd-s4-slot.is-clear img { filter: blur(0) brightness(1.05) contrast(1.06); transform: scale(1); }
+
+.bd-s4-big {
+  margin: calc(var(--w4) * .04) 0 0;
+  padding-left: 6%;
+  font-family: "Newsreader", "Georgia", serif;
+  font-weight: 500;
+  font-size: clamp(2.4rem, 8.4vw, 4.4rem);
+  line-height: 1.15;
+  color: #111;
+}
+.bd-s4-line {
+  margin: .4rem 0 0;
+  text-align: center;
+  font-family: "Newsreader", "Georgia", serif;
+  font-weight: 400;
+  font-size: clamp(.92rem, 2.3vw, 1.2rem);
+  line-height: 1.4;
+  color: #6b7b4c;
+}
+.bd-s4-note {
+  width: var(--w4);
+  margin: 1rem 0 0;
+  text-align: left;
+  font-family: "Patrick Hand", "Comic Sans MS", cursive, sans-serif;
+  font-size: clamp(.7rem, 1.6vw, .86rem);
+  line-height: 1.45;
+  color: #333;
+  opacity: .8;                         /* softened */
+  position: relative;
+  left: 18px;                          /* small nudge to the right (desktop) */
+}
+@media (max-width: 600px) {
+  .bd-fourth { --w4: 88vw; }
+  .bd-s4-note { font-size: .78rem; left: 8px; }
+}
+/* ===== END SECTION 4 – CSS ===== */
+
+/* ===== SECTION 5 (Our iconic line) – CSS ===== */
+/* A genuinely long section in normal page flow. Each word sits a whole screen below the
+   previous one. An invisible focus line stays at one height on the screen; the script blurs
+   every word by its distance from that line, so you scroll to discover each word. */
+.bd-iconic {
+  --sh: 100vh;
+  --bw: min(90vw, 44rem);                    /* width of the layout board */
+  position: relative;
+  height: calc(var(--sh) * 2.64);             /* several screens tall */
+  background: #ecdfc9;
+}
+@supports (height: 100dvh) { .bd-iconic { --sh: 100dvh; } }
+.bd-ic-board {
+  position: relative;
+  width: var(--bw);
+  height: 100%;
+  margin: 0 auto;
+}
+.bd-ic-item {
+  position: absolute;
+  margin: 0;
+  font-family: "Jura", "Jost", "Poppins", Arial, sans-serif;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  color: #111;
+  transform: translateY(-50%);
+  filter: blur(9px);                          /* blurred by default; the script clears the one at the line */
+  will-change: filter;
+  user-select: none;
+}
+/* vertical positions: heading, then one word every 60% of a screen */
+.bd-ic-title { left: 50.8%; top: calc(var(--sh) * .14); transform: translate(-50%, -50%);
+               font-weight: 400; font-size: calc(var(--bw) * .043); letter-spacing: .04em; }
+@media (max-width: 600px) { .bd-ic-title { font-size: 1.2rem; } }
+/* word sizes: big words up to ~104px, small words up to ~80px (scaled down on phones) */
+.bd-ic-1 { left: 40.5%; top: calc(var(--sh) * .46);  font-size: clamp(3.2rem, 11vw, 6.5rem); letter-spacing: .07em; }
+.bd-ic-2 { left: 31.1%; top: calc(var(--sh) * .86);  font-size: clamp(2.5rem, 8.5vw, 5rem);  letter-spacing: .08em; }
+.bd-ic-3 { left: 35.6%; top: calc(var(--sh) * 1.26); font-size: clamp(3.2rem, 11vw, 6.5rem); letter-spacing: .07em; }
+.bd-ic-4 { left: 51.5%; top: calc(var(--sh) * 1.66); font-size: clamp(2.5rem, 8.5vw, 5rem);  letter-spacing: .08em; }
+.bd-ic-5 { left: 37.4%; top: calc(var(--sh) * 2.06); font-size: clamp(2.5rem, 8.5vw, 5rem);  letter-spacing: .08em; }
+@media (max-width: 600px) {
+  .bd-iconic { --bw: 94vw; }
+}
+/* ===== END SECTION 5 – CSS ===== */
+
+/* ===== SECTION 7 (Malone hero) + SECTION 8 (final message) – CSS ===== */
+.bd-hero {
+  --hw: min(100vw, 1600px);                   /* width of the hero image */
+  background: #EDE5DC;
+  padding-bottom: clamp(3rem, 8vw, 6rem);
+}
+.bd-reveal.bd-reveal-hero {
+  width: var(--hw);
+  margin: 0 auto;
+  transform: translateY(56px);
+  transition:
+    opacity 1800ms ease,
+    transform 1800ms cubic-bezier(.2, .7, .2, 1);
+}
+.bd-reveal.bd-reveal-hero.is-visible { transform: translateY(0); }
+.bd-hero-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* image stays solid at the top/middle and dissolves into the page background (#EDE5DC) at the bottom */
+}
+/* image + dark overlay share one wrapper, so the bottom fade into the #EDE5DC background still works and
+   the text (a separate element) is never darkened by the overlay */
+.bd-hero-media {
+  --hero-dim: .15;                            /* overlay strength: 0 = none, .15 = 15% black */
+  position: relative;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 58%, rgba(0,0,0,.55) 78%, transparent 100%);
+          mask-image: linear-gradient(to bottom, #000 0%, #000 58%, rgba(0,0,0,.55) 78%, transparent 100%);
+}
+.bd-hero-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, var(--hero-dim));
+  pointer-events: none;
+}
+.bd-hero-text {
+  position: relative;
+  margin-top: calc(var(--hw) * -.075);         /* text sits over the faded part of the image */
+  padding: 0 1.5rem;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 1600ms ease 600ms;      /* appears just after the image */
+}
+.bd-reveal-hero.is-visible .bd-hero-text { opacity: 1; }
+.bd-hero-kicker {
+  margin: 0;
+  padding-left: .22em;
+  font-family: "Playfair Display", Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(.85rem, 2.1vw, 1.1rem);
+  letter-spacing: .22em;
+  color: #C58B55;
+}
+.bd-hero-title {
+  margin: .2em 0 0;
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(1.7rem, 6vw, 4.2rem);
+  line-height: 1.15;
+  letter-spacing: .04em;
+  color: #C58B55;
+}
+.bd-hero-title::after {                       /* thin divider like the reference */
+  content: "";
+  display: block;
+  width: 3.2rem;
+  height: 1px;
+  margin: clamp(.7rem, 2vw, 1.1rem) auto 0;
+  background: rgba(43, 41, 38, .35);
+}
+.bd-hero-msg {
+  max-width: 34rem;
+  margin: clamp(1.2rem, 3.4vw, 2rem) auto 0;
+  font-family: "EB Garamond", Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(.98rem, 2.5vw, 1.2rem);
+  line-height: 2;
+  color: #C58B55;
+}
+
+.bd-final {
+  box-sizing: border-box;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(4rem, 12vw, 8rem) 1.5rem;
+  background: #EDE5DC;
+}
+/* no typing here: the whole message fades in together, slowly */
+.bd-reveal.bd-reveal-final {
+  max-width: 100%;
+  transform: translateY(22px);
+  transition:
+    opacity 2600ms ease,
+    transform 2600ms cubic-bezier(.2, .7, .2, 1);
+}
+.bd-reveal.bd-reveal-final.is-visible { transform: translateY(0); }
+.bd-final-kicker,
+.bd-final-sub,
+.bd-final-cue {
+  margin: 0;
+  font-family: "Montserrat", "Poppins", Arial, sans-serif;
+  font-weight: 400;
+  font-size: clamp(.7rem, 1.9vw, .85rem);     /* fixed sizes: nothing here is animated or resized */
+  line-height: 1.5;
+  text-align: center;
+}
+.bd-final-kicker {
+  padding-left: .2em;                         /* balances the trailing letter-spacing so it stays centred */
+  letter-spacing: .2em;
+  color: #a79e96;
+}
+.bd-final-name {
+  margin: clamp(1rem, 3vw, 1.7rem) 0;
+  padding-left: .22em;
+  font-family: "Montserrat", "Poppins", Arial, sans-serif;
+  font-weight: 400;
+  font-size: clamp(3rem, 13vw, 6.4rem);       /* large; sized so the whole word always fits */
+  line-height: 1.05;
+  letter-spacing: .22em;
+  white-space: nowrap;
+  text-align: center;
+  color: #66703f;
+}
+.bd-final-sub {
+  letter-spacing: .1em;
+  color: #7d726b;
+}
+.bd-final-cue {
+  margin-top: clamp(3.2rem, 11vw, 6rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  letter-spacing: .12em;
+  color: #6f6862;
+}
+.bd-final-cue::after {
+  content: "";
+  display: block;
+  width: 1px;
+  height: 1.3rem;
+  margin-top: .35rem;
+  background: #cdc5bd;
+}
+/* ===== END SECTION 7 + 8 – CSS ===== */
+
+/* ===== SECTION 9 (final personal letter) – CSS ===== */
+.bd-letter-sec {
+  box-sizing: border-box;
+  padding: clamp(1.5rem, 6vw, 4.5rem) clamp(.75rem, 4vw, 2rem) clamp(2rem, 7vw, 5rem);
+  background: #EDE5DC;
+}
+/* the paper grows with its content: no fixed height, no clipping */
+.bd-reveal.bd-reveal-letter {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  width: min(100%, 46rem);
+  margin: 0 auto;
+  padding: clamp(4.2rem, 10vw, 6.5rem) clamp(1.3rem, 8vw, 4.8rem) clamp(2.6rem, 8vw, 5rem);
+  text-align: left;
+  background: #f8f6f4;
+  box-shadow: 0 1px 3px rgba(60, 45, 30, .10), 0 6px 22px rgba(60, 45, 30, .08);
+  transform: translateY(32px);
+  transition:
+    opacity 2600ms ease,
+    transform 2600ms cubic-bezier(.2, .7, .2, 1);
+}
+.bd-reveal.bd-reveal-letter.is-visible { transform: translateY(0); }
+/* thin corner lines, top-left and top-right */
+.bd-reveal-letter::before,
+.bd-reveal-letter::after {
+  content: "";
+  position: absolute;
+  top: clamp(1rem, 3.4vw, 1.9rem);
+  width: clamp(2.2rem, 7vw, 3.3rem);
+  height: clamp(2.2rem, 7vw, 3.3rem);
+  pointer-events: none;
+}
+.bd-reveal-letter::before { left: clamp(1rem, 3.4vw, 1.9rem);  border-top: 1.5px solid #222; border-left: 1.5px solid #222; }
+.bd-reveal-letter::after  { right: clamp(1rem, 3.4vw, 1.9rem); border-top: 1.5px solid #222; border-right: 1.5px solid #222; }
+
+.bd-letter-date {
+  position: absolute;
+  top: clamp(2.2rem, 6.4vw, 3.5rem);
+  right: clamp(1.9rem, 6vw, 3.4rem);
+  margin: 0;
+  font-family: "Montserrat", "Poppins", Arial, sans-serif;
+  font-weight: 400;
+  font-size: clamp(.55rem, 1.6vw, .68rem);
+  letter-spacing: .16em;
+  text-align: right;
+  white-space: nowrap;
+  color: #8f8f8f;
+}
+.bd-letter-to {
+  margin: 0 0 clamp(1.6rem, 4vw, 2.4rem);
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(1.1rem, 3.4vw, 1.45rem);
+  line-height: 1.5;
+  letter-spacing: .1em;
+  color: #636a35;
+}
+.bd-letter-greet {
+  margin: 0 0 clamp(2rem, 5vw, 3rem);
+  font-family: "Jura", "Jost", Arial, sans-serif;
+  font-weight: 400;
+  font-size: clamp(.82rem, 2.3vw, 1rem);
+  line-height: 1.8;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #8a8a8a;
+}
+.bd-letter-body p {
+  margin: 0 0 1.85em;                         /* clear space between every paragraph */
+  font-family: "Jura", "Jost", Arial, sans-serif;
+  font-weight: 500;
+  font-size: clamp(.9rem, 2.4vw, 1.04rem);    /* one size for the whole letter */
+  line-height: 1.95;
+  letter-spacing: .05em;
+  text-align: left;
+  color: #6f6862;
+  overflow-wrap: anywhere;                    /* long words never push the page sideways */
+}
+.bd-letter-body p:last-child { margin-bottom: 0; }
+/* ===== END SECTION 9 – CSS ===== */
+
+/* ---------- Confetti layer (above everything, never blocks clicks) ---------- */
+.bd-confetti {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 720px) {
+  :root { --bd-frame-w: clamp(150px, min(58vw, 30vh), 260px); }
+  .bd {
+    flex-direction: column;
+    gap: 3rem;
+    align-items: center;
+    padding-top: 3.5rem;
+    padding-bottom: 3.5rem;
+  }
+  .bd-text { max-width: 24rem; }
+  .bd-title { font-size: 1.3rem; }
+  .bd-text p { font-size: .85rem; }
+}
+@media (max-width: 480px) {
+  .bd-date-label, .bd-day { letter-spacing: .3em; padding-left: .3em; }
+}
+</style>
+</head>
+<body>
+
+  <!-- 1. Initial screen: book + OPEN / NAH buttons -->
+  <div class="stage" id="stage">
+    <div class="bk-scene">
+
+      <div class="bk-camera" id="camera">
+        <div class="bk-pan" id="pan">
+          <div class="bk-book" id="book" role="img" aria-label="Book cover: Basta ako umaangat na ako">
+            <div class="bk-body"></div>
+
+            <div class="bk-leaf bk-leaf-2"><i class="bk-face bk-leaf-front"></i><i class="bk-face bk-leaf-back"></i></div>
+            <div class="bk-leaf bk-leaf-1"><i class="bk-face bk-leaf-front"></i><i class="bk-face bk-leaf-back"></i></div>
+
+            <div class="bk-cover">
+              <div class="bk-face bk-front">
+                <div class="bk-title">
+                  <span class="bk-l1">Basta ako</span>
+                  <span class="bk-l2">umaangat</span>
+                  <span class="bk-l3">na ako</span>
+                </div>
+              </div>
+              <div class="bk-face bk-inside"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bk-actions" id="actions">
+        <button class="bk-btn bk-open" id="openBtn" type="button">OPEN</button>
+        <span class="bk-nah-slot" id="nahSlot"><button class="bk-btn bk-nah" id="nahBtn" type="button">NAH</button></span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 2. Full-screen white used for the transition -->
+  <div class="white" id="white"></div>
+
+  <!-- 3. The name -->
+  <h1 class="name" id="name">Malorne</h1>
+
+  <!-- 4. Mount point for your future main page (left empty on purpose) -->
+  <main id="main-page" hidden tabindex="-1">
+    <!-- ===== NAVIGATION: one text-only bar for the whole page ===== -->
+    <nav class="bd-nav" aria-label="Main">
+      <a href="#bd-home">Home</a>
+      <a href="#bd-music">Music</a>
+      <a href="#bd-gallery">Gallery</a>
+      <a href="#bd-final">Message</a>
+    </nav>
+
+    <div class="bd" id="bd-home">
+
+      <div class="bd-photo">
+        <!-- PHOTO SLOT: put your photo inside the white box, e.g. <div class="bd-frame-inner"><img src="photo.jpg" alt=""></div> -->
+        <div class="bd-frame"><div class="bd-frame-inner"><img src="/m1.png" alt="M1"></div></div>
+
+        <!-- CAKE STICKER SLOT: put your image between the tags, e.g. <img src="cake.png" alt=""> -->
+        <div class="bd-sticker bd-cake">
+          <img src="/birthday-cake.png" alt="Cake">
+        </div>
+
+        <!-- BOTTOM STICKER SLOT: put your image between the tags, e.g. <img src="bottom.png" alt=""> -->
+        <div class="bd-sticker bd-bunting">
+          <img src="/bunting.png" alt="Bunting">
+        </div>
+      </div>
+
+      <div class="bd-text">
+        <h2 class="bd-title" id="bd-title">HAPPY BIRTHDAYYYYY, MY NAKKKKK!</h2>
+        <p>Another year, another chapter napuuddd, and another reason to celebrate the wonderful person that you are, nakk!!  I hope today brings you genuine happiness cuss bortt is deyy mo and endless laughter, and all the love you deserve.</p>
+        <p>And who would've thought that a person I once thought was STRICKTO would eventually become someone I'd call my brother, and my very own anak? HAHAHAHAHA LTTTT!!</p>
+        <p>ENJOY YOUR DAY, nakk! YOU DESERVE ALL THE GOOD THINGS IN THIS WORLDDD</p>
+      </div>
+
+    </div>
+
+    <!-- ===== SECTION 2 (Dad message + photo frame) – HTML ===== -->
+    <section class="bd-dad" id="bd-dad">
+      <div class="bd-reveal bd-reveal-dad">
+        <div class="bd-dad-text">
+          <p>sarrii nak ganto lang mag hanap  buhay si dad nakk!! AHAHAHAHAHAHAH</p>
+          <p>wag ka mag alalaa nakk one day papaldoo si dad. hanap tayoo ng single mowm na walang anak. yung malapit na ma dedu nak paraa yung mansion at kayamanann masasatinn!! edi paldoo (tulungann moko hanap)</p>
+        </div>
+       
+        <div class="bd-dad-frame"><div class="bd-frame-inner"><img src="/snow.png" alt="" onerror="this.style.visibility='hidden'"></div></div>
+      </div>
+    </section>
+    <!-- ===== END SECTION 2 – HTML ===== -->
+
+    <!-- Second section: fades in when scrolled to -->
+    <section class="bd-second" id="bd-music">
+      <div class="bd-reveal">
+        <h2 class="bd-music-title">MUSIC</h2>
+        <p class="bd-music-sub">The music that remind me of you</p>
+        <!-- MUSIC IMAGE: change the src path to your picture -->
+        <div class="bd-music-slot"><img src="/wengweng.jpg" alt="" onerror="this.style.visibility='hidden'"></div>
+        <p class="bd-music-cap">lola ko patay na di naging paro-par....... emee HAHAHAHHA baka minus points toh sa langit</p>
+        <p class="bd-date-label">NOVEMBER 12, 2005</p>
+        <p class="bd-date">11.12.2005</p>
+        <p class="bd-day">THURSDAY</p>
+      </div>
+    </section>
+
+    <!-- ===== SECTION 3 (For someone whose hands heal) – HTML ===== -->
+    <section class="bd-third" id="bd-letter">
+      <div class="bd-reveal bd-reveal-s3">
+        <h2 class="bd-s3-title" id="bd-s3-title">For someone whose hands heal</h2>
+
+        <div class="bd-s3-row">
+          <div class="bd-s3-pics">
+           
+            <div class="bd-s3-frame"><div class="bd-s3-img"><img src="/heal1.png" alt="" onerror="this.style.visibility='hidden'"></div></div>
+            <!-- IMAGE 2: change the src path to your picture -->
+            <div class="bd-s3-frame"><div class="bd-s3-img"><img src="/heal2.png" alt="" onerror="this.style.visibility='hidden'"></div></div>
+          </div>
+          <p class="bd-s3-p" id="bd-s3-p1">A dedicated MedTech student who always strives for excellence, both in studies and responsibilities. (complimenttt toh ah)</p>
+        </div>
+
+        <div class="bd-s3-row bd-s3-row2">
+          <div class="bd-s3-pics">
+            <!-- IMAGE 3: change the src path to your picture -->
+            <div class="bd-s3-frame"><div class="bd-s3-img"><img src="/heal3.png" alt="" onerror="this.style.visibility='hidden'"></div></div>
+          </div>
+          <p class="bd-s3-p" id="bd-s3-p2">A handsss on and dependable staff member (CF) who genuinely cares about the clan. Despite being naturally introverted (introvertedd?!! ay HAHAHAAHA) , you have a friendly personality and a presence people can always appreciate. (syempree HWHAHAH)</p>
+        </div>
+      </div>
+    </section>
+    <!-- ===== END SECTION 3 – HTML ===== -->
+
+    <!-- ===== GALLERY (after "For someone whose hands heal") – HTML ===== -->
+    <section class="bd-gal" id="bd-gallery">
+      <div class="bd-gal-stage">
+        <p class="bd-gal-nav"><span>Gallery</span></p>
+
+        <div class="bd-gal-head">
+          <h2 class="bd-gal-title" aria-label="Gallery"><span class="bd-gal-ch" aria-hidden="true"><i style="--i:0">G</i></span><span class="bd-gal-ch" aria-hidden="true"><i style="--i:1">a</i></span><span class="bd-gal-ch" aria-hidden="true"><i style="--i:2">l</i></span><span class="bd-gal-ch" aria-hidden="true"><i style="--i:3">l</i></span><span class="bd-gal-ch" aria-hidden="true"><i style="--i:4">e</i></span><span class="bd-gal-ch" aria-hidden="true"><i style="--i:5">r</i></span><span class="bd-gal-ch" aria-hidden="true"><i style="--i:6">y</i></span></h2>
+          <span class="bd-gal-line"></span>
+        </div>
+
+        <!-- 12 IMAGES: change the src paths to your pictures (images/gallery1.jpg ... gallery12.jpg) -->
+        <div class="bd-gal-track">
+        <div class="bd-gal-item"><img src="/ter7.png" alt="" decoding="async" onerror="this.style.visibility='hidden'"></div>
+        <div class="bd-gal-item"><img src="/ter10.png" alt="" decoding="async" onerror="this.style.visibility='hidden'"></div>
+        <div class="bd-gal-item"><img src="/ter11.png" alt="" decoding="async" onerror="this.style.visibility='hidden'"></div>
+        <div class="bd-gal-item"><img src="/ter12.png" alt="" decoding="async" onerror="this.style.visibility='hidden'"></div>
+        <div class="bd-gal-item"><img src="/ter13.png" alt="" decoding="async" onerror="this.style.visibility='hidden'"></div>
+        <div class="bd-gal-item"><img src="/ter14.png" alt="" decoding="async" onerror="this.style.visibility='hidden'"></div>
+        <div class="bd-gal-item"><img src="/ter1.jpg" alt="" decoding="async" onerror="this.style.visibility='hidden'"></div>
+        <div class="bd-gal-item"><img src="/ter2.jpg" alt="" decoding="async" onerror="this.style.visibility='hidden'"></div>
+        <div class="bd-gal-item"><img src="/ter3.png" alt="" decoding="async" onerror="this.style.visibility='hidden'"></div>
+        <div class="bd-gal-item"><img src="/ter4.jpg" alt="" decoding="async" onerror="this.style.visibility='hidden'"></div>
+        <div class="bd-gal-item"><img src="/ter5.jpg" alt="" decoding="async" onerror="this.style.visibility='hidden'"></div>
+        <div class="bd-gal-item"><img src="/ter6.png" alt="" decoding="async" onerror="this.style.visibility='hidden'"></div>
+        </div>
+      </div>
+    </section>
+    <!-- ===== END GALLERY – HTML ===== -->
+
+    <!-- ===== SECTION 4 (Your favorite line) – HTML ===== -->
+    <section class="bd-fourth" id="bd-favorite">
+      <div class="bd-reveal bd-reveal-s4">
+        <h2 class="bd-s4-title">YOUR FAVORITE LINE</h2>
+
+        <div class="bd-s4-slots">
+          <!-- IMAGE 1: change the src path to your picture -->
+          <div class="bd-s4-slot bd-s4-1" tabindex="0"><img src="/gasto1.jpg" alt="" onerror="this.style.visibility='hidden'"></div>
+          <!-- IMAGE 2: change the src path to your picture -->
+          <div class="bd-s4-slot bd-s4-2" tabindex="0"><img src="/gasto2.jpg" alt="" onerror="this.style.visibility='hidden'"></div>
+          <!-- IMAGE 3: change the src path to your picture -->
+          <div class="bd-s4-slot bd-s4-3" tabindex="0"><img src="/gasto3.jpg" alt="" onerror="this.style.visibility='hidden'"></div>
+        </div>
+
+        <p class="bd-s4-big">Last na</p>
+        <p class="bd-s4-line">Funny how imongg “last pramiss” always finds a way nga another pramiss napud .</p>
+        <p class="bd-s4-note">peroo cgee okieee lang kay ge tagaan mansad ko nimooo  AAHAHAHAHAHAHAAH<br>bitawww, thankk you nakk sa pag donate hahahaha broke imong dadiii eynii HAHAAHAHAH</p>
+      </div>
+    </section>
+    <!-- ===== END SECTION 4 – HTML ===== -->
+
+    <!-- ===== SECTION 5 (Our iconic line) – HTML ===== -->
+    <section class="bd-iconic" id="bd-iconic">
+      <div class="bd-ic-board">
+        <h2 class="bd-ic-item bd-ic-title">OUR ICONIC LINE</h2>
+        <p class="bd-ic-item bd-ic-w bd-ic-1">BASTA</p>
+        <p class="bd-ic-item bd-ic-w bd-ic-2">AKO</p>
+        <p class="bd-ic-item bd-ic-w bd-ic-3">NAKA</p>
+        <p class="bd-ic-item bd-ic-w bd-ic-4">ANGAT</p>
+        <p class="bd-ic-item bd-ic-w bd-ic-5">NAAKO</p>
+      </div>
+    </section>
+    <!-- ===== END SECTION 5 – HTML ===== -->
+
+    <!-- ===== SECTION 7 (Malone hero / birthday dedication) – HTML ===== -->
+    <section class="bd-hero" id="bd-hero">
+      <div class="bd-reveal bd-reveal-hero">
+        <!-- HERO IMAGE: change the src path if you move the picture -->
+        <div class="bd-hero-media">
+          <img class="bd-hero-img" src="/malmone2.png" alt="Malone's Roblox avatar standing in golden grass at sunset">
+        </div>
+        <div class="bd-hero-text">
+          <p class="bd-hero-kicker">from: Eyniiiii</p>
+          <h2 class="bd-hero-title">POGI MONG DAD</h2>
+          <p class="bd-hero-msg">Happii birthdayyy to my naliligo na anak na amoy baby powdahh, na amoy perfume amoy versace. na hindi amoy vex, hindi amoy white flower. tas mabait, generous, nag mana sa dada na pogi</p>
+        </div>
+      </div>
+    </section>
+    <!-- ===== END SECTION 7 – HTML ===== -->
+
+    <!-- ===== SECTION 8 (final message – fades in, no typing) – HTML ===== -->
+    <section class="bd-final" id="bd-final">
+      <div class="bd-reveal bd-reveal-final">
+        <p class="bd-final-kicker">A MESSAGE. JUST FOR YOU</p>
+        <h2 class="bd-final-name">MALON</h2>
+        <p class="bd-final-sub">this page was made with love - scroll down</p>
+        <p class="bd-final-cue">scroll</p>
+      </div>
+    </section>
+    <!-- ===== END SECTION 8 – HTML ===== -->
+
+    <!-- ===== SECTION 9 (final personal letter – fades in, no typing) – HTML ===== -->
+    <section class="bd-letter-sec" id="bd-birthday-letter">
+      <article class="bd-reveal bd-reveal-letter">
+        <p class="bd-letter-date">NOVEMBER 12, THURSDAY</p>
+        <h2 class="bd-letter-to">My dearest anak, Malon</h2>
+        <p class="bd-letter-greet">HAPPY BIRTHDAY, NAK / BROTHER IN CHRIST / BAI / BRO / LORNEEEEE / LONEEEEE!</p>
+        <div class="bd-letter-body">
+          <p>You have become part of my journey, and I'm sure sa journey pud sa uban. And I'm genuinely, genuinely happy nga nagkaila ta because you're one of those friends nga dili plastic, one of those people nga ma-sandalan namo whenever things get heavy, and someone I can comfortably be myself around without having to pretend to be someone else. Little did I know nga ang tawo nga akong unang impression kay strickto would eventually become one of the most important people in my life. HAHAHAHAHA</p>
+          <p>So, before you became my Nak, before ta nagka-close, before ta nahimong friends, my very first impression sa imoha was "STRICKTO" The first time I saw you was didto sa Candelilla, and then I asked Ate Ave if you're a girl kay naka-girl avatar man ka ato. Then she answered nga lalaki daw ka. So pagkaingon niya nga lalaki ka, my first thought was, "Strickto siya, di siya managad." HAHAHAHAHAHA</p>
+          <p>Then I started joining the clan games before, and honestly, wala ra kaayo tika na mind ato nga time because naa pirmi sa akong mind nga imong mga close friends ra imong tagdon. So I didn't really expect nga magkaila ta ug ing-ani ka-close.</p>
+          <p>And then we met Raigblossom. SHE WAS THE REASON NGANO TA NAGKA-CLOSE. We started getting along because hilig siya og horror, and didto sa The Mimic ta unang nag close2x. And that was the beginning of everything. That was when we started becoming tropa.</p>
+          <p>Then I kept hanging out with Hederr, and that's when you became my "medyo close friend." HAHAHAHAHA And then we had Hederr review, and there you became "Maloorneeeee."</p>
+          <p>And when I took the risk on someone I liked, you were so supportive of us. That was when you became my BRO / BAI / LORNEE. In short, I started seeing you as a brother. And especially when I found out nga we have the same God, it made our friendship even more meaningful to me.</p>
+          <p>And eventually, being tropa wasn't enough to explain what you had become to me. Being a close friend wasn't enough to describe how much I valued your presence. So you became my "ANAK" HAHAHAHAHAHA LTTT!!</p>
+          <p>But jokes aside, Nak, I hope you know how much I appreciate you. If someone had told me during those first few days nga the person I thought was too strict to even acknowledge me would eventually become someone I would call my brother, I probably wouldn't have believed them. It's funny how life introduces us to people. Sometimes, the people we least expect to become important are the ones who end up leaving the biggest impact on our lives.</p>
+          <p>I want you to know that I'm genuinely grateful for every moment we've shared. From the random games, chikaaa,chesssmessszzz, bakkstabb (ay emee wala ta ana HAHAHAAH),serious talks, and even those moments nga mag AFK rata sa server AHAAHAHHAHHA Those little moments might seem ordinary, but they're memories I wouldn't trade for anything.</p>
+          <p>I also hope that you never lose the person you are. Keep that humor, that personality, and that generous heart of yours. Don't let the difficult parts of life change the goodness within you. Continue growing, continue learning, and most importantly, continue walking with God.</p>
+          <p>And one more thing, Nak. I hope this friendship is one of those friendships that time won't easily take away. I know we all have our own paths to walk, responsibilities to fulfill, and different chapters to experience. We might not always have the same amount of time to spend together, and there might be days when life gets too busy for us to talk or play like we used to. But I hope that no matter how much things change, we never forget how this friendship started. TROTT!!</p>
+          <p>Thank you for being you, Nak. Thank you for being my friend, my brother in Christ, my bai, and my anak. Thank you for becoming part of my life in ways you probably don't even realize. I'm proud of the person you are and even more excited to see the person God is shaping you to become.</p>
+          <p>If there's one thing I want you to take from this very long birthday message, it's that YOUR EXISTENCE IS APPRECIATED. You are loved, you are valued, and you matter more than you probably realize. Never think that your presence goes unnoticed. I'm genuinely blessed to have met you, and I'll always be thankful that our paths crossed</p>
+          <p>HAPPY BIRTHDAY ONCE AGAIN, MY NAKKKKKK! (sheshh ang papa ko na pakinggan HAHAHAAH wueyy bente uno palang ko huuhhuu HAHHAHA)</p>
+          <p>May God bless you with many more birthdays, more blessings, more answered prayers, and more reasons to smile. Keep shining, keep growing, and keep being the wonderful person that you are.</p>
+        </div>
+      </article>
+    </section>
+    <!-- ===== END SECTION 9 – HTML ===== -->
+  </main>
+
+  <script>
+    /* ------------------------------------------------------
+       CONFIG
+       Set MAIN_PAGE_URL to redirect when the intro finishes,
+       e.g. "index.html". Leave null to just reveal #main-page
+       and fire the "entrance:complete" event.
+       ------------------------------------------------------ */
+    const MAIN_PAGE_URL = null;
+
+    const TIMING = {
+      open:       1600,  // keep in sync with --bk-open
+      zoom:       2200,  // keep in sync with --bk-zoom
+      whiteFade:   900,  // keep in sync with --white-time
+      whiteHold:  800,  // blank white screen
+      nameFadeIn: 1000,  // keep in sync with --name-in
+      nameHold:   3000,  // name visible for exactly 3 s
+      nameFadeOut:1400   // keep in sync with --name-out
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const book = $('book'), stage = $('stage'), white = $('white'),
+          name = $('name'), main = $('main-page'),
+          camera = $('camera'), pan = $('pan'),
+          openBtn = $('openBtn'), nahBtn = $('nahBtn');
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    /* ---- Future connection point ---- */
+    function goToMainPage() {
+      document.dispatchEvent(new CustomEvent('entrance:complete'));
+      if (typeof window.onEntranceComplete === 'function') window.onEntranceComplete();
+      if (MAIN_PAGE_URL) { window.location.assign(MAIN_PAGE_URL); return; }
+      main.hidden = false;           // <-- put/connect your main page here
+    }
+
+    function zoomScale() {
+      // Scale so the (white) page area overshoots the viewport.
+      const r = book.getBoundingClientRect();
+      return Math.max(innerWidth / r.width, innerHeight / r.height) * 1.6;
+    }
+
+    let started = false;
+    async function play() {
+      if (started) return;
+      started = true;
+      openBtn.disabled = true;
+      stage.classList.add('is-opening');           // buttons fade away
+
+      // Cover swings open around the spine; camera zooms + pans gently at the same time
+      book.classList.add('is-open');
+      camera.style.transform = `scale(${zoomScale()})`;
+      pan.style.transform = 'translateX(9%) rotateY(-5deg)';   // subtle horizontal camera pan
+
+      // White begins to bloom as the zoom nears the end
+      await sleep(TIMING.zoom * 0.6);
+      white.classList.add('is-on');
+      await sleep(TIMING.whiteFade);
+      stage.style.visibility = 'hidden';   // fully white now
+
+      // Blank white screen
+      await sleep(TIMING.whiteHold);
+
+      // MALORNE fades in, stays 3 s, fades out
+      name.classList.add('is-in');
+      await sleep(TIMING.nameFadeIn + TIMING.nameHold);
+      name.classList.remove('is-in');
+      name.classList.add('is-out');
+      await sleep(TIMING.nameFadeOut);
+
+      goToMainPage();
+    }
+
+    /* OPEN never moves and is the only thing that starts the animation */
+    openBtn.addEventListener('click', play);
+
+    /* ---------------- NAH: dodges the cursor / finger ---------------- */
+    let nahFloating = false, nahX = 0, nahY = 0, ptr = null;
+
+    function overlaps(a, b, pad) {
+      return !(a.right + pad < b.left || a.left - pad > b.right ||
+               a.bottom + pad < b.top || a.top - pad > b.bottom);
+    }
+
+    function dodge() {
+      if (started) return;
+      const w = nahBtn.offsetWidth, h = nahBtn.offsetHeight, m = 12;
+      const vw = window.innerWidth, vh = window.innerHeight;
+
+      if (!nahFloating) {                       // lift it out of the layout, right where it is
+        const r = nahBtn.getBoundingClientRect();
+        nahX = r.left; nahY = r.top;
+        nahBtn.style.left = nahX + 'px';
+        nahBtn.style.top  = nahY + 'px';
+        nahBtn.classList.add('is-floating');
+        nahFloating = true;
+        void nahBtn.offsetWidth;                // flush so the move below animates
+      }
+
+      const open = openBtn.getBoundingClientRect();
+      let best = null, bestScore = -1;
+      for (let i = 0; i < 60; i++) {
+        const x = m + Math.random() * Math.max(0, vw - w - 2 * m);
+        const y = m + Math.random() * Math.max(0, vh - h - 2 * m);
+        const box = { left: x, top: y, right: x + w, bottom: y + h };
+        if (overlaps(box, open, 24)) continue;                       // never on top of OPEN
+        const away  = Math.hypot(x - nahX, y - nahY);                // really move somewhere else
+        const toPtr = ptr ? Math.hypot(x + w / 2 - ptr.x, y + h / 2 - ptr.y) : 999;
+        const score = Math.min(away, 200) + Math.min(toPtr, 200);
+        if (away > 120 && toPtr > 150) { best = { x, y }; break; }
+        if (score > bestScore) { bestScore = score; best = { x, y }; }
+      }
+      if (!best) return;
+      nahX = best.x; nahY = best.y;
+      nahBtn.style.left = nahX + 'px';
+      nahBtn.style.top  = nahY + 'px';
+    }
+
+    const trap = (e) => { e.preventDefault(); if (e.clientX != null) ptr = { x: e.clientX, y: e.clientY }; dodge(); };
+    nahBtn.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') trap(e); });
+    nahBtn.addEventListener('pointerdown', trap);
+    nahBtn.addEventListener('touchstart', (e) => {            // mobile: dodge on the tap attempt
+      const t = e.touches[0];
+      ptr = t ? { x: t.clientX, y: t.clientY } : null;
+      e.preventDefault(); dodge();
+    }, { passive: false });
+    nahBtn.addEventListener('click', trap);
+    nahBtn.addEventListener('focus', () => { nahBtn.blur(); dodge(); });
+
+    // mouse getting close also makes it run
+    document.addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse' || started) return;
+      ptr = { x: e.clientX, y: e.clientY };
+      if (!nahFloating) return;
+      const r = nahBtn.getBoundingClientRect();
+      const near = 70;
+      if (e.clientX > r.left - near && e.clientX < r.right + near &&
+          e.clientY > r.top - near && e.clientY < r.bottom + near) dodge();
+    });
+
+    // keep it on screen if the window changes size
+    window.addEventListener('resize', () => {
+      if (!nahFloating) return;
+      nahX = Math.min(Math.max(12, nahX), Math.max(12, innerWidth  - nahBtn.offsetWidth  - 12));
+      nahY = Math.min(Math.max(12, nahY), Math.max(12, innerHeight - nahBtn.offsetHeight - 12));
+      nahBtn.style.left = nahX + 'px';
+      nahBtn.style.top  = nahY + 'px';
+    });
+  </script>
+
+  <!-- Birthday surprise: confetti + main page sequence -->
+  <script>
+/* ==========================================================
+   MALORNE – birthday surprise sequence
+   - Confetti starts when the entrance's white screen begins
+     (watched via #white.is-on, no change to the entrance JS)
+   - Main page sequence starts on the "entrance:complete" event
+   - Works standalone too (main.html): starts immediately
+   ========================================================== */
+(function () {
+  'use strict';
+
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const rand = (a, b) => a + Math.random() * (b - a);
+
+  /* ---------------- Confetti (one-time, stops on request) ---------------- */
+  const Confetti = (function () {
+    const COLORS = [
+      '#2f6fb5', '#4a90d9', '#7db6ee', '#a9d3f5',   // blues
+      '#e8b93f', '#f2d27a', '#f5e3b3'               // gold / cream
+    ];
+    const MAX = 450;
+
+    let canvas, ctx, w, h, dpr;
+    let parts = [], raf = 0, last = 0, t0 = null, acc = 0, emitting = false;
+    let light = false, pulseTimer = 0;      // light = the small periodic bursts
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = window.innerWidth;
+      h = window.innerHeight;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function ensure() {
+      if (canvas) return;
+      canvas = document.createElement('canvas');
+      canvas.className = 'bd-confetti';
+      canvas.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(canvas);
+      ctx = canvas.getContext('2d');
+      resize();
+      window.addEventListener('resize', resize);
+    }
+
+    function spawn() {
+      const small = w < 600;
+      const s = rand(6, 14) * (small ? 0.8 : 1) * (light ? 0.75 : 1);
+      parts.push({
+        x0: rand(-20, w + 20),
+        y: -rand(10, 80),
+        vx: rand(-22, 22),
+        vy: rand(90, 240),
+        amp: rand(10, 42),
+        freq: rand(0.8, 2.4),
+        phase: rand(0, Math.PI * 2),
+        rot: rand(0, Math.PI * 2),
+        vrot: rand(-4, 4),
+        flip: rand(0, Math.PI * 2),
+        vflip: rand(3, 9),
+        size: s,
+        shape: Math.floor(rand(0, 3)),
+        color: COLORS[Math.floor(rand(0, COLORS.length))],
+        age: 0
+      });
+    }
+
+    function draw(p) {
+      const x = p.x0 + p.vx * p.age + Math.sin(p.age * p.freq + p.phase) * p.amp;
+      ctx.save();
+      ctx.translate(x, p.y);
+      ctx.rotate(p.rot);
+      ctx.scale(1, Math.cos(p.flip));
+      ctx.fillStyle = p.color;
+      ctx.strokeStyle = 'rgba(110, 90, 40, 0.28)';
+      ctx.lineWidth = 1;
+      const s = p.size;
+      if (p.shape === 0) {
+        ctx.fillRect(-s / 2, -s * 0.3, s, s * 0.6);
+        ctx.strokeRect(-s / 2, -s * 0.3, s, s * 0.6);
+      } else if (p.shape === 1) {
+        ctx.fillRect(-s * 0.6, -s * 0.12, s * 1.2, s * 0.24);
+      } else {
+        ctx.beginPath();
+        ctx.arc(0, 0, s * 0.32, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function step(ts) {
+      if (t0 === null) { t0 = ts; last = ts; }
+      const dt = Math.min((ts - last) / 1000, 0.05);
+      last = ts;
+
+      if (emitting) {
+        const small = w < 600;
+        const rate = light ? (small ? 8 : 14)                                   // just a few little pieces
+                           : ((ts - t0) < 2200 ? (small ? 75 : 130) : (small ? 18 : 28));
+        acc += rate * dt;
+        while (acc >= 1 && parts.length < MAX) { spawn(); acc -= 1; }
+        if (acc > 1) acc = 0;
+      }
+
+      ctx.clearRect(0, 0, w, h);
+      for (let i = parts.length - 1; i >= 0; i--) {
+        const p = parts[i];
+        p.age += dt;
+        p.y += p.vy * dt;
+        p.rot += p.vrot * dt;
+        p.flip += p.vflip * dt;
+        if (p.y > h + 30) { parts.splice(i, 1); continue; }
+        draw(p);
+      }
+
+      if (!emitting && parts.length === 0) {
+        raf = 0;
+        ctx.clearRect(0, 0, w, h);
+        return;
+      }
+      raf = requestAnimationFrame(step);
+    }
+
+    return {
+      start() {
+        if (emitting) return;
+        ensure();
+        clearTimeout(pulseTimer);
+        light = false;
+        emitting = true;
+        parts = [];
+        acc = 0;
+        t0 = null;
+        if (!raf) raf = requestAnimationFrame(step);
+      },
+      stop() { emitting = false; light = false; },   // no new pieces; existing ones finish falling
+      /* small burst: a few light pieces for `ms` milliseconds, then they just finish falling */
+      pulse(ms) {
+        if (emitting && !light) return;               // the big entrance confetti is still going
+        ensure();
+        clearTimeout(pulseTimer);
+        light = true;
+        emitting = true;
+        acc = 0;
+        t0 = null;
+        if (!raf) raf = requestAnimationFrame(step);
+        pulseTimer = setTimeout(() => { emitting = false; light = false; }, ms);
+      }
+    };
+  })();
+
+  /* ---------------- Typing effect (no cursor) ---------------- */
+  const title = document.getElementById('bd-title');
+  const paras = Array.prototype.slice.call(document.querySelectorAll('.bd-text p'));
+  const typeEls = [title].concat(paras).filter(Boolean);
+  const originals = typeEls.map((el) => el.textContent.trim());
+
+  /* ===== SECTION 3 – typing (starts only when the section is scrolled into view) ===== */
+  const s3Els = ['bd-s3-title', 'bd-s3-p1', 'bd-s3-p2']
+    .map((id) => document.getElementById(id)).filter(Boolean);
+  const s3Orig = s3Els.map((el) => el.textContent.trim());
+  let s3Started = false, s3Token = 0;
+
+  function prepareS3() {
+    s3Els.forEach((el, i) => {
+      el.textContent = '';
+      s3Orig[i].split(' ').forEach((word, wi, arr) => {
+        const wSpan = document.createElement('span');
+        wSpan.className = 'bd-w';
+        for (const ch of word) {
+          const c = document.createElement('span');
+          c.className = 'bd-c';
+          c.textContent = ch;
+          wSpan.appendChild(c);
+        }
+        el.appendChild(wSpan);
+        if (wi < arr.length - 1) el.appendChild(document.createTextNode(' '));
+      });
+    });
+  }
+
+  async function typeS3() {
+    if (s3Started) return;
+    s3Started = true;
+    const tok = ++s3Token;
+    for (let i = 0; i < s3Els.length; i++) {          // heading -> paragraph 1 -> paragraph 2
+      const chars = s3Els[i].querySelectorAll('.bd-c');
+      for (let k = 0; k < chars.length; k++) {
+        if (tok !== s3Token) return;
+        chars[k].classList.add('on');
+        await sleep(charDelay(chars[k].textContent));
+        if (k < chars.length - 1 && chars[k + 1].parentNode !== chars[k].parentNode) {
+          await sleep(charDelay(' '));
+        }
+      }
+    }
+  }
+  /* ===== END SECTION 3 – typing ===== */
+
+  
+  // Wrap every character in a hidden span (layout stays fixed, nothing jumps)
+  function prepare() {
+    typeEls.forEach((el, i) => {
+      el.textContent = '';
+      originals[i].split(' ').forEach((word, wi, arr) => {
+        const wSpan = document.createElement('span');
+        wSpan.className = 'bd-w';
+        for (const ch of word) {
+          const c = document.createElement('span');
+          c.className = 'bd-c';
+          c.textContent = ch;
+          wSpan.appendChild(c);
+        }
+        el.appendChild(wSpan);
+        if (wi < arr.length - 1) el.appendChild(document.createTextNode(' '));
+      });
+    });
+  }
+
+  function charDelay(ch) {
+    // continuous typing: no extra pause at punctuation or between paragraphs
+    if (ch === ' ') return rand(20, 36);
+    return rand(22, 42);
+  }
+
+  async function typeAll() {
+    for (let i = 0; i < typeEls.length; i++) {
+      const chars = typeEls[i].querySelectorAll('.bd-c');
+      for (let k = 0; k < chars.length; k++) {
+        chars[k].classList.add('on');
+        // pause based on the character just shown (spaces handled between words)
+        await sleep(charDelay(chars[k].textContent));
+        if (k < chars.length - 1 && chars[k + 1].parentNode !== chars[k].parentNode) {
+          await sleep(charDelay(' '));   // the space between two words
+        }
+      }
+    }
+  }
+
+  /* ---------------- Main page sequence ---------------- */
+  const main = document.getElementById('main-page');
+  const frame = main && main.querySelector('.bd-frame');
+  const cake = main && main.querySelector('.bd-cake');
+  const bunting = main && main.querySelector('.bd-bunting');
+  let running = false;
+  let revealObs = null;
+  let letterObs = null;
+
+  // Sections fade in only when the user scrolls them into view
+  function initReveal() {
+    const targets = main.querySelectorAll('.bd-reveal:not(.bd-reveal-letter)');
+    const letter = main.querySelector('.bd-reveal-letter');
+    const show = (t) => {
+      t.classList.add('is-visible');
+      if (t.classList.contains('bd-reveal-s3')) typeS3();   // typing starts with the fade-in
+    };
+    if (!('IntersectionObserver' in window)) {
+      targets.forEach(show);
+      if (letter) letter.classList.add('is-visible');
+      return;
+    }
+    revealObs = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) { show(e.target); revealObs.unobserve(e.target); }
+      });
+    }, { root: main, threshold: 0.2 });
+    targets.forEach((t) => revealObs.observe(t));
+
+    if (letter) {
+      // the letter is much taller than the screen, so "20% visible" would never happen:
+      // trigger once its top edge has scrolled 20% of the screen into view instead
+      letterObs = new IntersectionObserver((entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) { letter.classList.add('is-visible'); letterObs.disconnect(); }
+        });
+      }, { root: main, threshold: 0, rootMargin: '0px 0px -20% 0px' });
+      letterObs.observe(letter);
+    }
+  }
+
+  function reset() {
+    [frame, cake, bunting].forEach((el) => el && el.classList.remove('is-in'));
+    main.classList.remove('is-live');
+    main.classList.remove('bd-nav-on');       // nav stays hidden while typing
+    main.classList.add('bd-locked');          // no scrolling while typing
+    main.scrollTop = 0;
+    if (revealObs) { revealObs.disconnect(); revealObs = null; }
+    if (letterObs) { letterObs.disconnect(); letterObs = null; }
+    main.querySelectorAll('.bd-reveal').forEach((r) => r.classList.remove('is-visible'));
+    s3Started = false; s3Token++;
+    prepareS3();
+    prepare();
+  }
+
+  /* little confetti: every 15 seconds, drops for 2 seconds only */
+  let pulseInt = 0;
+  function startPulses() {
+    clearInterval(pulseInt);
+    pulseInt = setInterval(() => { if (!document.hidden) Confetti.pulse(2000); }, 15000);
+  }
+
+  async function runSequence() {
+    if (running || !main) return;
+    running = true;
+    reset();
+
+    await sleep(80);
+    main.classList.add('is-live');            // white -> page colour
+    await sleep(900);
+
+    bunting.classList.add('is-in');           // 1) bottom sticker rises in
+    await sleep(1150);
+
+    frame.classList.add('is-in');             // 2) frame + cake sticker together
+    cake.classList.add('is-in');
+    await sleep(1200);
+
+    Confetti.stop();                          // 3) confetti stops spawning
+    await sleep(500);
+
+    await typeAll();                          // 4) message types itself
+    main.classList.remove('bd-locked');       // 5) scrolling unlocked
+    main.classList.add('bd-nav-on');          //    and the nav fades in / slides down
+    initReveal();                             // 6) section 2 waits for the user
+    startPulses();                            // 7) little confetti every 15 s
+    running = false;
+  }
+
+  /* ===== NAVIGATION + SECTION 4 interactions ===== */
+  if (main) {
+    main.querySelectorAll('.bd-nav a').forEach((a) => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        const t = document.getElementById(a.getAttribute('href').slice(1));
+        if (!t) return;
+        // keep scrolling locked while the first message is typing
+        if (main.classList.contains('bd-locked') && t.id !== 'bd-home') return;
+        main.scrollTo({ top: t.offsetTop, behavior: 'smooth' });
+      });
+    });
+
+    // touch screens: tap an image to reveal only that one
+    const slots = main.querySelectorAll('.bd-s4-slot');
+    const noHover = window.matchMedia('(hover: none)');
+    slots.forEach((sl) => {
+      sl.addEventListener('click', () => {
+        if (!noHover.matches) return;
+        const wasClear = sl.classList.contains('is-clear');
+        slots.forEach((o) => o.classList.remove('is-clear'));
+        if (!wasClear) sl.classList.add('is-clear');
+      });
+    });
+  }
+
+  /* ===== SECTION 5 – scroll-controlled moving focus (no timers, no fade) ===== */
+  if (main) {
+    const sec = document.getElementById('bd-iconic');
+    const items = sec ? Array.prototype.slice.call(sec.querySelectorAll('.bd-ic-item')) : [];
+    const MAX_BLUR = 9;       // px: how blurry everything outside the focus line is
+    const LINE_AT = 0.45;     // invisible focus line sits at 45% of the screen height
+    const BAND = 0.06;        // fully clear zone around the line (fraction of screen height)
+    const FALL = 0.14;        // soft edge from clear to blurred (fraction of screen height)
+    const clamp01 = (v) => Math.min(1, Math.max(0, v));
+    const smooth = (t) => t * t * (3 - 2 * t);
+    const lastBlur = items.map(() => -1);
+    let queued = false;
+
+    function focusUpdate() {
+      queued = false;
+      if (!sec || main.hidden || !items.length) return;
+      const vh = main.clientHeight;
+      const mTop = main.getBoundingClientRect().top;
+      const lineY = vh * LINE_AT;
+      const centers = items.map((el) => {          // read everything first...
+        const r = el.getBoundingClientRect();
+        return r.top - mTop + r.height / 2;
+      });
+      items.forEach((el, i) => {                   // ...then write
+        const t = clamp01((Math.abs(centers[i] - lineY) - vh * BAND) / (vh * FALL));
+        const b = Math.round(MAX_BLUR * smooth(t) * 5) / 5;
+        if (b !== lastBlur[i]) {
+          lastBlur[i] = b;
+          el.style.filter = b < 0.05 ? 'none' : 'blur(' + b + 'px)';
+        }
+      });
+    }
+    function queueFocus() {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(focusUpdate);
+    }
+    main.addEventListener('scroll', queueFocus, { passive: true });
+    window.addEventListener('resize', queueFocus);
+    window.addEventListener('load', queueFocus);
+    document.addEventListener('entrance:complete', () => setTimeout(() => { queueFocus(); main.focus({ preventScroll: true }); }, 80));
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(queueFocus);
+  }
+  /* ===== END SECTION 5 ===== */
+
+  /* ---------------- Hooks ---------------- */
+  if (!main) return;
+  prepare();
+  prepareS3();
+
+  const white = document.getElementById('white');
+  if (white) {
+    // Entrance page present: confetti begins as the white screen begins.
+    const startIfWhite = () => {
+      if (white.classList.contains('is-on')) { Confetti.start(); obs.disconnect(); }
+    };
+    const obs = new MutationObserver(startIfWhite);
+    obs.observe(white, { attributes: true, attributeFilter: ['class'] });
+    startIfWhite();
+
+    document.addEventListener('entrance:complete', runSequence);
+  } else {
+    // Standalone main.html (for testing)
+    window.addEventListener('load', () => { Confetti.start(); runSequence(); });
+  }
+
+  window.BirthdaySequence = { run: runSequence };
+})();
+  </script>
+
+  <!-- Gallery: pinned vertical-to-horizontal scroll + entrance triggers -->
+  <script>
+(function () {
+  'use strict';
+  const main = document.getElementById('main-page');
+  const sec = document.getElementById('bd-gallery');
+  if (!main || !sec) return;
+
+  const stage = sec.querySelector('.bd-gal-stage');
+  const head  = sec.querySelector('.bd-gal-head');
+  const track = sec.querySelector('.bd-gal-track');
+  const items = Array.prototype.slice.call(track.querySelectorAll('.bd-gal-item'));
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const mqTouch  = window.matchMedia('(pointer: coarse)');
+  const mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  let native = false, maxShift = 0, target = 0, current = 0;
+  let running = false, ready = false, left = items.length;
+
+  const offset = () => (native ? track.scrollLeft : current);
+
+  /* image entrance: only starts once the title has finished; each batch is staggered */
+  function checkImages(off) {
+    if (!ready || !left) return;
+    const vw = main.clientWidth;
+    let k = 0;
+    items.forEach((it) => {
+      if (it.classList.contains('is-in')) return;
+      const x = it.offsetLeft - off;
+      if (x < vw * 0.94 && x + it.offsetWidth > 0) {
+        it.style.setProperty('--d', (k * 110) + 'ms');
+        it.classList.add('is-in');
+        k++; left--;
+      }
+    });
+  }
+
+  /* scroll-linked movement, eased so it follows the scroll speed without jumping */
+  function frame() {
+    const d = target - current;
+    current = Math.abs(d) < 0.2 ? target : current + d * 0.13;
+    track.style.transform = 'translate3d(' + (-current).toFixed(2) + 'px,-50%,0)';
+    head.style.transform  = 'translate3d(' + (-current * 0.1).toFixed(2) + 'px,-50%,0)';   // slow drift of the title
+    checkImages(current);
+    if (current !== target) requestAnimationFrame(frame); else running = false;
+  }
+  function kick() { if (!running) { running = true; requestAnimationFrame(frame); } }
+
+  function progress() {
+    const r = sec.getBoundingClientRect();
+    const range = r.height - stage.offsetHeight;
+    return range > 0 ? clamp(-r.top / range, 0, 1) : 0;
+  }
+  function onScroll() {
+    if (native) return;
+    const t = progress() * maxShift;
+    if (t === target && current === target) return;
+    target = t;
+    kick();
+  }
+
+  function measure() {
+    const vh = main.clientHeight;
+    if (!vh) return;                                   // main page not shown yet
+    native = mqTouch.matches || mqReduce.matches;
+    sec.classList.toggle('bd-gal--native', native);
+    if (native) {
+      sec.style.height = '';
+      stage.style.height = '';
+      track.style.transform = '';
+      head.style.transform = '';
+      maxShift = 0; target = current = 0;
+    } else {
+      stage.style.height = vh + 'px';
+      maxShift = Math.max(0, track.offsetWidth - main.clientWidth);
+      sec.style.height = (vh + maxShift) + 'px';       // 1px of scrolling = 1px of sideways movement
+    }
+    onScroll();
+    checkImages(offset());
+  }
+
+  /* trigger the title animation when the gallery section comes into view */
+  function trigger() {
+    if (sec.classList.contains('is-in')) return;
+    sec.classList.add('is-in');
+    setTimeout(() => { ready = true; checkImages(offset()); }, 1500);
+  }
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((es) => {
+      if (es.some((e) => e.isIntersecting)) { trigger(); io.disconnect(); }
+    }, { root: main, rootMargin: '0px 0px -25% 0px', threshold: 0 });
+    io.observe(stage);
+  } else {
+    trigger();
+  }
+
+  main.addEventListener('scroll', onScroll, { passive: true });
+  track.addEventListener('scroll', () => { if (native) checkImages(track.scrollLeft); }, { passive: true });
+  // trackpad sideways swipes over the gallery move the page, so they drive the gallery too
+  stage.addEventListener('wheel', (e) => {
+    if (native || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+    e.preventDefault();
+    main.scrollTop += e.deltaX;
+  }, { passive: false });
+
+  window.addEventListener('resize', measure);
+  window.addEventListener('load', measure);
+  if (mqTouch.addEventListener)  mqTouch.addEventListener('change', measure);
+  if (mqReduce.addEventListener) mqReduce.addEventListener('change', measure);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+  document.addEventListener('entrance:complete', () => { setTimeout(measure, 100); setTimeout(measure, 700); });
+  measure();
+})();
+  
+/* Gallery hover / tap helper: marks items once their entrance is done; tap toggles full photo on touch */
+(function () {
+  const sec = document.getElementById('bd-gallery');
+  if (!sec) return;
+  const items = Array.prototype.slice.call(sec.querySelectorAll('.bd-gal-item'));
+  items.forEach((it) => {
+    it.addEventListener('transitionend', (e) => {
+      if (e.target === it && e.propertyName === 'transform' && it.classList.contains('is-in')) it.classList.add('is-settled');
+    });
+    it.addEventListener('click', () => {
+      if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+      const on = it.classList.contains('is-full');
+      items.forEach((o) => o.classList.remove('is-full'));
+      if (!on) it.classList.add('is-full');
+    });
+  });
+  document.getElementById('main-page').addEventListener('scroll', () => {
+    items.forEach((o) => o.classList.remove('is-full'));
+  }, { passive: true });
+})();
+</script>
+</body>
+</html>

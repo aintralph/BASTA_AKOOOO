@@ -1,0 +1,161 @@
+/* ==========================================================
+   MALORNE – entrance animation
+   Timings live in :root so they are easy to tweak.
+   ========================================================== */
+:root {
+  --sky: #97d3e3;
+  --cover: #f6eee8;
+  --cover-edge: #e6d9cf;
+  --ink: #2b2b2b;
+  --script-ink: #4a4a4a;
+
+  --open-time: 1600ms;   /* cover swings open */
+  --zoom-time: 2200ms;   /* camera zoom toward the pages */
+  --white-time: 900ms;   /* fade into pure white */
+  --name-in: 1800ms;     /* MALORNE fade-in */
+  --name-out: 1400ms;    /* MALORNE fade-out */
+
+  --book-w: clamp(150px, 22vmin, 240px);
+  --book-h: calc(var(--book-w) * 1.32);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* ---------- Stage (sky-blue backdrop) ---------- */
+.stage {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--sky);
+  perspective: 1400px;
+  overflow: hidden;
+}
+
+/* ---------- Book ---------- */
+.book {
+  position: relative;
+  width: var(--book-w);
+  height: var(--book-h);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transform-origin: 50% 50%;
+  transition:
+    transform var(--zoom-time) cubic-bezier(.65, 0, .25, 1),
+    filter 400ms ease;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+/* subtle hover to hint interactivity */
+.book:not(.is-open):hover,
+.book:not(.is-open):focus-visible {
+  transform: translateY(-6px) scale(1.035);
+}
+.book:not(.is-open):hover .cover,
+.book:not(.is-open):focus-visible .cover {
+  box-shadow: 0 10px 22px rgba(0, 0, 0, .22), 0 3px 0 rgba(0, 0, 0, .12);
+}
+.book:focus-visible { filter: drop-shadow(0 0 6px rgba(255, 255, 255, .9)); }
+
+/* the page revealed once the cover swings open */
+.pages {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, .18);
+  border-radius: 1px 3px 3px 1px;
+}
+
+/* front cover, hinged on the left edge */
+.cover {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  transition: transform var(--open-time) cubic-bezier(.45, .05, .25, 1),
+              box-shadow 400ms ease;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, .18), 0 3px 0 rgba(0, 0, 0, .1);
+  border-radius: 1px 3px 3px 1px;
+}
+.book.is-open .cover { transform: rotateY(-172deg); }
+
+.cover-front,
+.cover-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: inherit;
+}
+.cover-front {
+  background: var(--cover);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 11% 11% 0;
+  gap: .35em;
+  font-family: "Poppins", "Helvetica Neue", Arial, sans-serif;
+  font-size: calc(var(--book-w) * .055);
+  letter-spacing: .04em;
+  color: var(--ink);
+  line-height: 1.25;
+  text-align: left;
+  user-select: none;
+}
+.cover-front span:nth-child(n+2) { padding-left: .3em; }
+.cover-back {
+  background: var(--cover-edge);
+  transform: rotateY(180deg);
+}
+
+/* ---------- White overlay ---------- */
+.white {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--white-time) ease;
+}
+.white.is-on { opacity: 1; }
+
+/* ---------- Name ---------- */
+.name {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+  font-family: "Italianno", "Great Vibes", "Snell Roundhand", cursive;
+  font-weight: 400;
+  font-size: clamp(3.2rem, 14vw, 8rem);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--script-ink);
+  text-align: center;
+  user-select: none;
+  transition: opacity var(--name-in) ease;
+}
+.name.is-in  { opacity: 1; }
+.name.is-out { opacity: 0; transition-duration: var(--name-out); }
+
+/* ---------- Main-page mount point (intentionally empty) ---------- */
+#main-page { position: fixed; inset: 0; background: #fff; }
+#main-page[hidden] { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --open-time: 600ms; --zoom-time: 800ms; }
+}
